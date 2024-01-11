@@ -1,16 +1,18 @@
 const http = require('http') //กำหนดตัวแปร http
 const fs = require("fs")
+const url = require('url')
 
 const indexpage = fs.readFileSync(`${__dirname}/webpage/index.html`)
-
-const server = http.createServer(function(req,res){ //กำหนดตัวแปร server 
+const productpage = fs.readFileSync(`${__dirname}/webpage/product1.html`)
+const server = http.createServer((req,res)=>{ //กำหนดตัวแปร server 
     
-    const pathname = req.url
-    console.log("url =",pathname)
-    if (pathname==="/" || pathname==="/home") {
+    const {pathname,query} = url.parse(req.url,true)
+    if (pathname==="/") {
         res.end(indexpage) //จบการทำงาน
-    }else if(pathname==="/gg"){
-        res.end("<h1>Hello GG</h1>")
+    }else if(pathname==="/product"){
+        if (query.id === "1") {
+            res.end(productpage)
+        }
     }else{
         res.writeHead(404)
         res.end("<h1>NOT Found</h1>")
