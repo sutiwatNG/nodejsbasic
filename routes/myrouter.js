@@ -1,6 +1,8 @@
 //จัดการ routing
 const express = require('express') //นำ exprerss เข้ามาทำงาน
 const router = express.Router()
+// เรียกใช้งานโมเดล
+const Product = require('../models/products')
 
 router.get('/',(req,res)=>{
     const product = [
@@ -16,9 +18,18 @@ router.get('/addform',(req,res)=>{
 router.get('/manage',(req,res)=>{
     res.render("manage")
 })
-router.post('/insert',(req,res)=>{
-    console.log(req.body)
-    res.render("form")
+router.post('/insert', (req,res)=>{
+    let data = new Product({
+        name: req.body.name,
+        price: req.body.price,
+        image: req.body.image,
+        description: req.body.description
+    })
+    Product.saveProduct(data,(err)=>{
+        if(err)console.log(err)
+        res.redirect('/')
+    })
 })
+
 
 module.exports = router
