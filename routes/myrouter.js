@@ -16,12 +16,9 @@ router.get('/addform',(req,res)=>{
 router.get('/manage',(req,res)=>{
     res.render("manage")
 })
-router.get('/404',(req,res)=>{
-    res.render("404")
+router.post('/insert',(req,res)=>{
+    console.log(req.body)
+    res.render("form")
 })
-router.get('/product',(req,res)=>{
-    res.render("product")
-})
-
 
 module.exports = router
