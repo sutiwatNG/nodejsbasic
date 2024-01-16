@@ -20,19 +20,63 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage:storage
 })
+//หน้า index
 router.get('/',(req,res)=>{
-    const product = [
-        {name:"NOTEBOOK",price:25500,image:"images/products/product1.png"},
-        {name:"เสื้อ",price:800,image:"images/products/product2.png"},
-        {name:"หูฟัง",price:1100,image:"images/products/product3.png"}
-    ]
-    res.render("index",{product:product})
+    //แสดงผลข้อมูล
+    Product.find().exec((err,doc)=>{
+        res.render("index",{product:doc})
+    })
 })
+//หน้า เพิ่มข้อมูลสินค้า
 router.get('/addform',(req,res)=>{
     res.render("form")
 })
+//หน้า จัดการข้อมูลสินค้า
 router.get('/manage',(req,res)=>{
-    res.render("manage")
+       //แสดงผลข้อมูล
+       Product.find().exec((err,doc)=>{
+        res.render("manage",{product:doc})
+    })
+})
+//หน้า สินค้า
+router.get('/:id',(req,res)=>{
+        const product_id = req.params.id
+        Product.findOne({_id:product_id}).exec((err,doc)=>{
+            if(err)console.log(err)
+            res.render("product",{product:doc})
+        })
+       
+})
+// ลบข้อมูล
+router.get('/delete/:id',(req,res)=>{
+    Product.findByIdAndDelete(req.params.id,
+        {useFindAndModify:false}).exec(err=>{
+            if(err)console.log(err)
+            res.redirect('/manage')
+        })
+})
+// แก้ไขข้อมูล
+router.post('/edit',(req,res)=>{
+    const edit_id = req.body.edit_id
+    Product.findOne({_id:edit_id}).exec((err,doc)=>{
+        //นำข้อมูลเดิมมาทำการแก้ไข
+        res.render("edit",{product:doc})
+    })
+
+})
+// อัพเดทข้อมูล
+router.post('/update',(req,res)=>{
+    const update_id = req.body.update_id
+    let data = {
+        name: req.body.name,
+        price: req.body.price,
+        description: req.body.description
+    }
+    Product.findByIdAndUpdate(update_id,data,{useFindAndModify:false}).exec(err=>{
+        if(err)console.log(err)
+        res.redirect('/manage')
+    })
+
 })
 router.post('/insert',upload.single("image"),(req,res)=>{
     let data = new Product({
@@ -45,7 +89,10 @@ router.post('/insert',upload.single("image"),(req,res)=>{
         if(err)console.log(err)
         res.redirect('/')
     })
+
 })
+
+
 
 
 module.exports = router
