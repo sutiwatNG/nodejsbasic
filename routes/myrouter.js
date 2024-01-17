@@ -20,6 +20,13 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage:storage
 })
+//ออกจากระบบ
+router.get('/logout',(req,res)=>{
+    res.clearCookie('username')
+    res.clearCookie('password')
+    res.clearCookie('login')
+    res.redirect('/')
+})
 //หน้า index
 router.get('/',(req,res)=>{
     //แสดงผลข้อมูล
@@ -27,9 +34,17 @@ router.get('/',(req,res)=>{
         res.render("index",{product:doc})
     })
 })
+router.get('/admin',(req,res)=>{
+    res.render("admin")
+})
+
 //หน้า เพิ่มข้อมูลสินค้า
 router.get('/addform',(req,res)=>{
-    res.render("form")
+    if (req.cookies.login) {
+        res.render("form")
+    }else{
+        res.render("admin")
+    }
 })
 //หน้า จัดการข้อมูลสินค้า
 router.get('/manage',(req,res)=>{
@@ -55,6 +70,7 @@ router.get('/delete/:id',(req,res)=>{
             res.redirect('/manage')
         })
 })
+
 // แก้ไขข้อมูล
 router.post('/edit',(req,res)=>{
     const edit_id = req.body.edit_id
@@ -93,6 +109,22 @@ router.post('/insert',upload.single("image"),(req,res)=>{
 })
 
 
+
+router.post('/login',(req,res)=>{
+    const username = req.body.username
+    const password = req.body.password
+    const timeExpire = 10000 //10 วินาที
+
+    if(username === "admin" && password === "123"){
+        //สร้าง cookie
+        res.cookie('username',username,{maxAge:timeExpire})
+        res.cookie('password',password,{maxAge:timeExpire})
+        res.cookie('login',true,{maxAge:timeExpire}) // ถ้าเป็นจริง จะ login เข้าสู่ระบบได้
+        res.redirect('manage')
+    }else{
+        res.render('404')
+    }
+})
 
 
 module.exports = router
