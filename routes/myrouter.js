@@ -12,7 +12,7 @@ const storage = multer.diskStorage({
         cb(null,'./public/images/products') //ตำแหน่งจัดเก็บไฟล์
     },
     filename:function(req,file,cb) {
-        cb(null,Date.now()+".jpg")//เปลี่ยนชื.อไฟล์ ป้องกันชื่อซ้ำกัน
+        cb(null,Date.now()+".jpg")//เปลี่ยนชื่อไฟล์ ป้องกันชื่อซ้ำกัน
     }
 })
 
@@ -22,17 +22,10 @@ const upload = multer({
 })
 //ออกจากระบบ
 router.get('/logout',(req,res)=>{
-    res.clearCookie('username')
-    res.clearCookie('password')
-    res.clearCookie('login')
-    res.redirect('/')
-})
-//หน้า index
-router.get('/',(req,res)=>{
-    //แสดงผลข้อมูล
-    Product.find().exec((err,doc)=>{
-        res.render("index",{product:doc})
+    req.session.destroy((err)=>{
+        res.redirect('/')
     })
+   
 })
 router.get('/admin',(req,res)=>{
     res.render("admin")
@@ -40,11 +33,8 @@ router.get('/admin',(req,res)=>{
 
 //หน้า เพิ่มข้อมูลสินค้า
 router.get('/addform',(req,res)=>{
-    if (req.cookies.login) {
         res.render("form")
-    }else{
-        res.render("admin")
-    }
+
 })
 //หน้า จัดการข้อมูลสินค้า
 router.get('/manage',(req,res)=>{
@@ -53,6 +43,15 @@ router.get('/manage',(req,res)=>{
         res.render("manage",{product:doc})
     })
 })
+//หน้า index
+router.get('/',(req,res)=>{
+    //แสดงผลข้อมูล
+    Product.find().exec((err,doc)=>{
+        res.render("index",{product:doc})
+    })
+})
+
+
 //หน้า สินค้า
 router.get('/:id',(req,res)=>{
         const product_id = req.params.id
@@ -71,6 +70,7 @@ router.get('/delete/:id',(req,res)=>{
         })
 })
 
+
 // แก้ไขข้อมูล
 router.post('/edit',(req,res)=>{
     const edit_id = req.body.edit_id
@@ -78,22 +78,7 @@ router.post('/edit',(req,res)=>{
         //นำข้อมูลเดิมมาทำการแก้ไข
         res.render("edit",{product:doc})
     })
-
-})
-// อัพเดทข้อมูล
-router.post('/update',(req,res)=>{
-    const update_id = req.body.update_id
-    let data = {
-        name: req.body.name,
-        price: req.body.price,
-        description: req.body.description
-    }
-    Product.findByIdAndUpdate(update_id,data,{useFindAndModify:false}).exec(err=>{
-        if(err)console.log(err)
-        res.redirect('/manage')
-    })
-
-})
+//เพิ่มproduct
 router.post('/insert',upload.single("image"),(req,res)=>{
     let data = new Product({
         name: req.body.name,
@@ -108,18 +93,35 @@ router.post('/insert',upload.single("image"),(req,res)=>{
 
 })
 
+})
+// อัพเดทข้อมูล
+router.post('/update',(req,res)=>{
+    const update_id = req.body.update_id
+    let data = {
+        name: req.body.name,
+        price: req.body.price,
+        description: req.body.description
+    }
+    Product.findByIdAndUpdate(update_id,data,{useFindAndModify:false}).exec(err=>{
+        if(err)console.log(err)
+        res.redirect('/manage')
+    })
+})
 
 
+
+//ส่งค่าlogin
 router.post('/login',(req,res)=>{
     const username = req.body.username
     const password = req.body.password
     const timeExpire = 10000 //10 วินาที
 
     if(username === "admin" && password === "123"){
-        //สร้าง cookie
-        res.cookie('username',username,{maxAge:timeExpire})
-        res.cookie('password',password,{maxAge:timeExpire})
-        res.cookie('login',true,{maxAge:timeExpire}) // ถ้าเป็นจริง จะ login เข้าสู่ระบบได้
+        //สร้าง session
+        req.session.username = username
+        req.session.password = password
+        req.session.login = true
+        req.session.cookie.maxAge = timeExpire 
         res.redirect('manage')
     }else{
         res.render('404')
