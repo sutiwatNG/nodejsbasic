@@ -1,11 +1,12 @@
 //จัดการ routing
 const express = require('express') //นำ exprerss เข้ามาทำงาน
-const router = express.Router()
+const router = express.Router() //นำ router เข้ามาทำงาน โดยใช้ express
+
 // เรียกใช้งานโมเดล
 const Product = require('../models/products')
 
 //อัพโหลดไฟล์
-const multer = require('multer')
+const multer = require('multer') //นำ multer เข้ามาทำงาน
 
 const storage = multer.diskStorage({
     destination:function(req,file,cb) {
@@ -20,6 +21,7 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage:storage
 })
+
 //ออกจากระบบ
 router.get('/logout',(req,res)=>{
     req.session.destroy((err)=>{
